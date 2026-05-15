@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# data
+reference_images/
+test_images/
+train_images/
+sample_submission.csv
+train.csv
+
