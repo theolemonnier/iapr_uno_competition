@@ -13,14 +13,14 @@ from config import IMG_PATHS
 from src.utils import open_image, plot_one_image
 
 if __name__ == "__main__":
-    selection = "train_white_overlapp" # "train_white_bg", "train_colorful_bg"
+    selection = "train_colorful_bg" # "train_white_bg", "train_colorful_bg"
     img = open_image(selection=selection)
     # plot_one_image(img)
 
     # hls
     hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
     h, l, s = cv2.split(hls)
-    # plot_one_image(s, title="s")
+    plot_one_image(s, title="s")
 
     # add blur 
     blurred = cv2.GaussianBlur(s, (5, 5), 0)

@@ -6,17 +6,13 @@ from pathlib import Path
 import cv2
 from tqdm import tqdm
 from typing import Tuple, Optional
-
+from src.utils import open_image
 
 # import from config file
 from config import REFERENCE_IMAGES
 from config import IMG_PATHS
 
-# img selection
-img_selected = "reference" # change this to select different image
-path_to_img = IMG_PATHS[img_selected]
 
-print(f"Processing image: {path_to_img}")
 
 def plot_one_image(img, title="Image"):
     plt.figure(figsize=(6, 6))
@@ -32,7 +28,7 @@ def hsv_mask(hsv, lower, upper):
         np.array(upper)
     )
 
-def extract_color_masks(img_path, plot=False):
+def extract_color_masks(img, plot=False):
     """
     Extract color masks from an image.
 
@@ -56,10 +52,6 @@ def extract_color_masks(img_path, plot=False):
         }
     """
 
-    # Load image
-    img = cv2.imread(str(img_path))
-    if img is None:
-        raise ValueError(f"Could not read image: {img_path}")
 
     rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -164,7 +156,6 @@ def detect_contours(binary_img, min_area=1000, plot=False):
     )
 
     # Keep only large contours
-    min_area = 2500   # adjust this 25000
     large_contours = [
         cnt for cnt in contours
         if cv2.contourArea(cnt) > min_area
@@ -176,6 +167,45 @@ def detect_contours(binary_img, min_area=1000, plot=False):
     cv2.drawContours(
         result,
         large_contours,
+        -1,
+        255,
+        thickness=2
+    )
+
+    # Display with matplotlib
+    if plot == True:
+        plt.figure(figsize=(8, 8))
+        plt.imshow(result, cmap="gray")
+        plt.title("Large contours")
+        plt.axis("off")
+        plt.show()
+
+    # cv2.imwrite("contours_binary.png", result) if needed 
+
+    return result
+
+def detect_numbers(binary_img, max_area=10000, plot=False):
+    edges = cv2.Canny(binary_img, 100, 255)
+
+    # Find contours
+    contours, _ = cv2.findContours(
+        edges,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    # Keep only large contours
+    small_contours = [
+        cnt for cnt in contours
+        if cv2.contourArea(cnt) < max_area
+    ]
+
+    # Draw result
+    result = np.zeros_like(binary_img)
+
+    cv2.drawContours(
+        result,
+        small_contours,
         -1,
         255,
         thickness=2
@@ -459,161 +489,14 @@ def detect_card_lines(edge_img, original_img=None, plot=True):
     return detected_lines, vis
 
 if __name__ == "__main__":
+    # img selection
+    img_selected = "reference" # change this to select different image
+    
+    img = open_image(img_selected)
 
-
-    filtered_images = extract_color_masks(path_to_img, plot=False)
+    filtered_images = extract_color_masks(img, plot=False)
 
     binary_img = filtered_images["Red"] # change this to select different color
     plot_one_image(binary_img)
 
-    # Elliptical kernel usually works better for natural shapes
-    kernel = cv2.getStructuringElement(
-        cv2.MORPH_RECT,
-        (4, 4)
-    )
 
-    # Close gaps
-    closed = cv2.morphologyEx(
-        binary_img,
-        cv2.MORPH_CLOSE,
-        kernel,
-        iterations=1
-    )
-
-    cv2.imshow("closed", closed)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
-    # plot_one_image(binary_img, title="Grayscale image")
-      
-    # Detect edges
-    card_contours = contours_img = detect_contours(binary_img, min_area=25000, plot=False)
-
-
-
-#     # Load binary image
-#     img = card_contours
-
-#     # Find contours
-#     contours, _ = cv2.findContours(
-#         img,
-#         cv2.RETR_EXTERNAL,
-#         cv2.CHAIN_APPROX_SIMPLE
-#     )
-
-#     out = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-
-#     for cnt in contours:
-
-#         # Ignore tiny contours
-#         if cv2.contourArea(cnt) < 100:
-#             continue
-
-#         # Approximate contour
-#         epsilon = 0.02 * cv2.arcLength(cnt, True)
-#         approx = cv2.approxPolyDP(cnt, epsilon, True)
-
-#         pts = approx[:,0,:]
-#         n = len(pts)
-
-#         if n < 3:
-#             continue
-
-#         # Check each vertex
-#         for i in range(n):
-
-#             prev = pts[(i-1)%n]
-#             curr = pts[i]
-#             nxt  = pts[(i+1)%n]
-
-#             # vectors
-#             v1 = prev - curr
-#             v2 = nxt - curr
-
-#             # normalize
-#             v1 = v1 / np.linalg.norm(v1)
-#             v2 = v2 / np.linalg.norm(v2)
-
-#             # angle
-#             angle = np.degrees(
-#                 np.arccos(np.clip(np.dot(v1,v2), -1.0, 1.0))
-#             )
-
-#             # Keep near 90°
-#             if 80 <= angle <= 100:
-
-#                 x, y = curr
-
-#                 # Draw detected right angle
-#                 cv2.circle(out, (x,y), 6, (0,0,255), -1)
-
-#                 print(f"Right angle at ({x},{y}) : {angle:.1f}")
-
-#     cv2.imshow("Right angles", out)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
-
-
-
-
-
-
-
-#     # plot_one_image(card_contours, title="Card contours")
-
-#     # my_ref = cv2.imread(str(IMG_PATHS["cards_contours_reference"]), cv2.IMREAD_GRAYSCALE)
-#     # # plot_one_image(my_ref, title="Reference contours")
-
-
-#     # target_edges = card_contours
-#     # template_edges = my_ref
-
-#     # original_img = cv2.imread(str(path_to_img))
-
-
-# #     lines, line_vis = detect_card_lines(
-# #         edge_img=card_contours,
-# #         original_img=original_img,
-# #         plot=True
-# # )
-
-
-
-#     # 3. Match template
-#     # # Search for template
-#     # result = find_binary_template(template_edges, target_edges)
-    
-#     # if result:
-#     #     print(f"✓ Template found at position: {result}")
-#     #     print(f"  Row: {result[0]}, Column: {result[1]}")
-#     # else:
-#     #     print("✗ Template not found")
-    
-#     # # 4. Visualize results
-#     # original_img = cv2.imread(str(path_to_img))
-#     # original_rgb = cv2.cvtColor(original_img, cv2.COLOR_BGR2RGB)
-    
-#     # visualize_detections(original_rgb, detections, template_edges)
-    
-#     # # Print detection details
-#     # print("\nDetection details:")
-#     # for i, det in enumerate(detections):
-#     #     print(f"Card {i+1}:")
-#     #     print(f"  Center: {det['center']}")
-#     #     print(f"  Angle: {det['angle']}°")
-#     #     print(f"  Scale: {det['scale']}")
-#     #     print(f"  Score: {det['score']:.3f}")
-
-
-#     # # scale = 2.5
-
-#     # # template_scaled = cv2.resize(
-#     # #     my_ref,
-#     # #     None,
-#     # #     fx=scale,
-#     # #     fy=scale,
-#     # #     interpolation=cv2.INTER_NEAREST
-#     # # )
-
-#     # # overlay_template(target_edges, template_scaled, x=100, y=100)

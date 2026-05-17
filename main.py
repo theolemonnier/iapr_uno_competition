@@ -1,3 +1,5 @@
+from ast import Load
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,9 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent
 
 img_path = BASE_DIR / "reference_images" / "L1000766.jpg"
 
-img_path = BASE_DIR / "train_images" / "L1000777.jpg" # white bg 
-img_path = BASE_DIR / "train_images" / "L1000974.jpg" # colorfull bg
-
+# img_path = BASE_DIR / "train_images" / "L1000777.jpg" # white bg 
+# img_path = BASE_DIR / "train_images" / "L1000974.jpg" # colorfull bg
+# img_path = BASE_DIR / "train_images" / "L1000836.jpg" # white bg and 2 identical colors 
 
 img = cv2.imread(str(img_path))
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -59,8 +61,8 @@ H, S, V = cv2.split(hsv)
 
 # plt.show()
 
-############## threshold on gray scale ###############
-# Load grayscale image
+# ############## threshold on gray scale ###############
+# # Load grayscale image
 # gray = cv2.imread(str(img_path), cv2.IMREAD_GRAYSCALE)
 
 # # Plot image + histogram
@@ -89,7 +91,7 @@ H, S, V = cv2.split(hsv)
 
 # plt.show()
 
-###### separate all colors with a single threshold on gray scale ###############
+##### separate all colors with a single threshold on gray scale ###############
 
 img = cv2.imread(str(img_path))
 rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -145,6 +147,7 @@ for color in ["Blue", "Green", "Black"]:
     else:
         masks[color] = mask
 
+# plot images 
 plt.figure(figsize=(18, 8))
 
 for i, (name, mask) in enumerate(masks.items(), start=1):
@@ -158,5 +161,60 @@ for i, (name, mask) in enumerate(masks.items(), start=1):
 
     plt.title(name)
     plt.axis("off")
-
 plt.show()
+
+
+# # create dico 
+# filtered_images = {}
+# for name, mask in masks.items():
+
+#     if name == "Black":
+#         # Keep black mask as binary image
+#         filtered_images[name] = mask.copy()
+
+#     else:
+#         filtered = cv2.bitwise_and(rgb, rgb, mask=mask)
+#         filtered_images[name] = filtered
+
+
+# ###########  find geometry of cards ###############
+# import cv2
+# import numpy as np
+
+# img = filtered_images["Green"]
+
+
+
+# # img = cv2.imread(img)
+# gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+# # Threshold white cards
+# _, th = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
+
+# plt.figure(figsize=(10,5))
+# plt.imshow(th, cmap="gray")
+# plt.show()
+
+# contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# cards = []
+
+# img_draw = th.copy()
+
+# for cnt in contours:
+#     area = cv2.contourArea(cnt)
+#     if area < 1:
+#         continue
+
+#     peri = cv2.arcLength(cnt, True)
+#     approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+
+#     if len(approx) == 4:
+#         cv2.drawContours(img_draw, [approx], -1, (0,255,0), 3)
+
+# # OpenCV uses BGR, matplotlib expects RGB
+# img_rgb = cv2.cvtColor(img_draw, cv2.COLOR_BGR2RGB)
+
+# plt.figure(figsize=(8,10))
+# plt.imshow(img_rgb)
+# plt.axis('off')
+# plt.show()
