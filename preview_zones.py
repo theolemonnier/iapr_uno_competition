@@ -13,25 +13,19 @@ from pathlib import Path
 
 # ====== TWEAK THESE ======
 SCENE_W, SCENE_H = 1080, 720   # canvas size (aspect 1.5 = 3:2 matches train images)
-MARGIN = 30                    # outer margin in px
-
-# Zone fractions (0..1 of canvas):
-P1_TOP_FRAC    = 0.65   # P1 bottom zone starts at this y-fraction
-P3_BOTTOM_FRAC = 0.35   # P3 top zone ends at this y-fraction
-
-P1_3_RIGHT_FRAC  = 0.30   # P1 and P3 left zone ends at this x-fraction
-P1_3_LEFT_FRAC   = 0.7   # P1 and P3 right zone starts at this x-fraction
-
-P2_LEFT_FRAC   = 0.65   # P2 right zone starts at this x-fraction
-P4_RIGHT_FRAC  = 0.35   # P4 left zone ends at this x-fraction
-
-P2_4_TOP_FRAC   = 0.75   # P2 and 4  zone starts at this y-fraction
-P2_4_BOTTOM_FRAC   = 0.25   # P2 and 4  zone ends at this y-fraction
+MARGIN           = 30
+P1_TOP_FRAC      = 0.7   # P1 bottom zone starts at this y-fraction
+P3_BOTTOM_FRAC   = 0.3   # P3 top zone ends at this y-fraction
+P1_3_RIGHT_FRAC  = 0.25   # P1 and P3 left x edge (zone x_min)
+P1_3_LEFT_FRAC   = 0.75   # P1 and P3 right x edge (zone x_max)
+P2_LEFT_FRAC     = 0.7  # P2 right zone starts at this x-fraction
+P4_RIGHT_FRAC    = 0.3   # P4 left zone ends at this x-fraction
+P2_4_BOTTOM_FRAC = 0.25   # P2 and P4 top y edge (zone y_min)
+P2_4_TOP_FRAC    = 0.75   # P2 and P4 bottom y edge (zone y_max)
 
 
-
-CENTER_XMIN, CENTER_XMAX = 0.35, 0.65
-CENTER_YMIN, CENTER_YMAX = 0.35, 0.65
+CENTER_XMIN, CENTER_XMAX = 0.40, 0.60
+CENTER_YMIN, CENTER_YMAX = 0.40, 0.60
 # =========================
 
 M = MARGIN
