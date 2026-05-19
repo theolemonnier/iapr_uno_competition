@@ -13,3 +13,7 @@ train_images/
 sample_submission.csv
 train.csv
 
+# Pipeline artifacts
+models/
+data/symbol_crops/
+submissions/
