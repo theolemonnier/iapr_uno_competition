@@ -14,14 +14,33 @@ from pathlib import Path
 # ====== TWEAK THESE ======
 SCENE_W, SCENE_H = 1080, 720   # canvas size (aspect 1.5 = 3:2 matches train images)
 MARGIN           = 30
-P1_TOP_FRAC      = 0.7   # P1 bottom zone starts at this y-fraction
-P3_BOTTOM_FRAC   = 0.3   # P3 top zone ends at this y-fraction
-P1_3_RIGHT_FRAC  = 0.25   # P1 and P3 left x edge (zone x_min)
-P1_3_LEFT_FRAC   = 0.75   # P1 and P3 right x edge (zone x_max)
-P2_LEFT_FRAC     = 0.7  # P2 right zone starts at this x-fraction
-P4_RIGHT_FRAC    = 0.3   # P4 left zone ends at this x-fraction
-P2_4_BOTTOM_FRAC = 0.25   # P2 and P4 top y edge (zone y_min)
-P2_4_TOP_FRAC    = 0.75   # P2 and P4 bottom y edge (zone y_max)
+
+# Player-zone fractions derived from data/jetons_et_backgrounds/backgrounds/bbox_player_position.csv
+# Source image dimensions: 4000 x 2662 (sum of x+w for P2, y+h for P1).
+import pandas as pd
+_BBOX_CSV = Path(__file__).parent / 'data' / 'jetons_et_backgrounds' / 'backgrounds' / 'bbox_player_position.csv'
+_bb = pd.read_csv(_BBOX_CSV).set_index('player')
+_bb.columns = [c.strip() for c in _bb.columns]
+_REF_W = float(_bb.loc[2, 'posx'] + _bb.loc[2, 'width'])     # 4002 -> ~4000
+_REF_H = float(_bb.loc[1, 'posy'] + _bb.loc[1, 'height'])    # 2662
+
+def _frac(row, col, ref):
+    return float(_bb.loc[row, col]) / ref
+
+# P1 (bottom): y_min = posy; P3 (top): y_max = posy + height
+P1_TOP_FRAC      = _frac(1, 'posy', _REF_H)                                                  # ~0.7055
+P3_BOTTOM_FRAC   = (float(_bb.loc[3, 'posy']) + float(_bb.loc[3, 'height'])) / _REF_H        # ~0.2957
+# P1 & P3 share horizontal extent: take tightest x_min (max) and x_max (min) of the two.
+P1_3_RIGHT_FRAC  = max(float(_bb.loc[1, 'posx']), float(_bb.loc[3, 'posx'])) / _REF_W        # ~0.2868
+P1_3_LEFT_FRAC   = min(float(_bb.loc[1, 'posx']) + float(_bb.loc[1, 'width']),
+                       float(_bb.loc[3, 'posx']) + float(_bb.loc[3, 'width'])) / _REF_W      # ~0.7010
+# P2 (right): x_min = posx; P4 (left): x_max = posx + width
+P2_LEFT_FRAC     = _frac(2, 'posx', _REF_W)                                                  # ~0.7550
+P4_RIGHT_FRAC    = (float(_bb.loc[4, 'posx']) + float(_bb.loc[4, 'width'])) / _REF_W         # ~0.2320
+# P2 & P4 share vertical extent: take tightest y_min (max) and y_max (min) of the two.
+P2_4_BOTTOM_FRAC = max(float(_bb.loc[2, 'posy']), float(_bb.loc[4, 'posy'])) / _REF_H        # ~0.2344
+P2_4_TOP_FRAC    = min(float(_bb.loc[2, 'posy']) + float(_bb.loc[2, 'height']),
+                       float(_bb.loc[4, 'posy']) + float(_bb.loc[4, 'height'])) / _REF_H     # ~0.7532
 
 
 CENTER_XMIN, CENTER_XMAX = 0.40, 0.60
